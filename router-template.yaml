@@ -1,0 +1,479 @@
+kind: Template
+apiVersion: v1
+metadata:
+  name: amq-interconnect-demo
+  annotations:
+    description:
+    iconClass: icon-amq
+    openshift.io/provider-display-name: Red Hat, Inc.
+    tags: messaging,amq
+    openshift.io/display-name: Red Hat AMQ Interconnect Router 1.x with TLS authentication
+labels:
+  template: amq-interconnect-demo
+message: A new messaging service has been created in your project.
+parameters:
+  - displayName: Regional Prefix
+    description: The name of the application.
+    name: REGIONAL_PREFIX
+    value: default
+    required: true
+  - displayName: Local Broker URL
+    description: The name of the application.
+    name: LOCAL_BROKER_URL
+    value: amq-broker.interconnect.svc
+    required: true
+  - displayName: Application Name
+    description: The name of the application.
+    name: APPLICATION_NAME
+    value: amq-interconnect
+    required: true
+  - displayName: Router Internal Certificates
+    description: The name of the secret that contains the certificate with which to authenticate inter-router connections.
+    name: INTER_ROUTER_CERTS_SECRET
+    value: inter-router-certs
+  - displayName: Client CA Certificates
+    description: The name of the secret that contains the CA certificate with which valid client certificates were signed.
+    name: CLIENT_CA_SECRET
+    value: client-ca
+  - description: Create a user name for accessing the router's web console.
+    name: USERNAME
+    value: admin
+  - description: Create a password for accessing the router's web console.
+    from: '[A-Z0-9]{8}'
+    generate: expression
+    name: PASSWORD
+  - displayName: Image Stream Namespace
+    description: The namespace in which the image streams for Red Hat Middleware images are
+      installed. These image streams are normally installed in the openshift namespace.
+      You should only need to modify this if you installed the image streams in a
+      different namespace/project.
+    name: IMAGE_STREAM_NAMESPACE
+    value: openshift
+  - displayName: Image Name
+    description: The name of the AMQ Interconnect image to use. This can usually be left as
+      the default value
+    name: IMAGE_NAME
+    value: amq-interconnect:latest
+  - displayName: qdrouterd.conf
+    description: The router configuration file.
+    name: QDROUTERD_CONF
+    value: |-
+      router {
+          mode: interior
+          id: Router.${HOSTNAME}
+      }
+
+      # only allow anonymous connections over localhost
+      listener {
+          host: localhost
+          port: amqp
+          authenticatePeer: no
+          saslMechanisms: ANONYMOUS
+      }
+
+      listener {
+          host: 0.0.0.0
+          port: amqps
+          sslProfile: service_tls
+          authenticatePeer: no
+          requireSsl: true
+          saslMechanisms: ANONYMOUS
+      }
+
+      listener {
+          host: 0.0.0.0
+          port: 55672
+          role: inter-router
+          sslProfile: inter_router_tls
+          authenticatePeer: yes
+          requireSsl: true
+          saslMechanisms: EXTERNAL
+      }
+
+      sslProfile {
+          name: inter_router_tls
+          certFile: /etc/qpid-dispatch-certs/inter-router/tls.crt
+          privateKeyFile: /etc/qpid-dispatch-certs/inter-router/tls.key
+          caCertFile: /etc/qpid-dispatch-certs/inter-router/ca.crt
+      }
+
+      sslProfile {
+          name: service_tls
+          certFile: /etc/qpid-dispatch-certs/normal/tls.crt
+          keyFile: /etc/qpid-dispatch-certs/normal/tls.key
+          caCertFile: /etc/qpid-dispatch-certs/client-ca/ca.crt
+      }
+
+      sslProfile {
+          name: console_tls
+          certFile: /etc/qpid-dispatch-certs/normal/tls.crt
+          keyFile: /etc/qpid-dispatch-certs/normal/tls.key
+      }
+
+      listener {
+          host: 0.0.0.0
+          port: 8672
+          authenticatePeer: yes
+          saslMechanisms: PLAIN SCRAM-SHA-1
+          sslProfile: console_tls
+          http: true
+          httpRootDir: /usr/share/qpid-dispatch/console
+      }
+
+      address {
+          prefix: closest
+          distribution: closest
+      }
+
+      address {
+          prefix: multicast
+          distribution: multicast
+      }
+
+      address {
+          prefix: unicast
+          distribution: closest
+      }
+
+      address {
+          prefix: exclusive
+          distribution: closest
+      }
+
+      address {
+          prefix: broadcast
+          distribution: multicast
+      }
+
+      connector {
+        name: LocalBroker
+        host: ${LOCAL_BROKER_URL}
+        port: 5672
+        role: route-container
+      }
+
+      connector {
+        name: R1_Router
+        host: ${R1_ROUTER_URL}
+        role: route-container
+        port: 443
+        sslProfile: inter_router_tls
+        verifyHostname: no
+      }
+
+      connector {
+        name: R2_Router
+        host: ${R2_ROUTER_URL}
+        role: route-container
+        port: 443
+        sslProfile: inter_router_tls
+        verifyHostname: no
+      }
+
+      #Address for local apps publishing events
+
+      autoLink {
+        addr: liquidityBalanceTransfers/local
+        connection: LocalBroker
+        direction: out
+        externalAddr: liquidityBalanceTransfers
+      }
+
+      autoLink {
+        addr: liquidityBalanceTransfers/${REGIONAL_PREFIX}
+        connection: LocalBroker
+        direction: out
+        externalAddr: liquidityBalanceTransfers
+      }
+
+      autoLink {
+        addr: liquidityBalanceTransfers/${R1_PREFIX}
+        connection: R1_Router
+        direction: out
+        externalAddr: liquidityBalanceTransfers/local
+      }
+
+      autoLink {
+        addr: liquidityBalanceTransfers/${R2_PREFIX}
+        connection: R2_Router
+        direction: out
+        externalAddr: liquidityBalanceTransfers/local
+      }
+
+      #Address for local apps receiving events
+
+      linkRoute {
+        prefix: liquidityBalanceTransfers
+        connection: LocalBroker
+        direction: out
+      }
+
+      # Address for local apps publishing global notifications
+
+      linkRoute {
+        prefix: accountUpdates
+        connection: LocalBroker
+        direction: in
+      }
+
+      linkRoute {
+        prefix: accountUpdates::${R1_PREFIX}
+        connection: LocalBroker
+        direction: out
+      }
+
+      linkRoute {
+        prefix: accountUpdates::${R2_PREFIX}
+        connection: LocalBroker
+        direction: out
+      }
+
+      # Address for partner systems receiving global notifications
+      linkRoute {
+        prefix: accountUpdates
+        connection: LocalBroker
+        direction: out
+      }
+
+      autoLink {
+        addr: accounts/local
+        connection: LocalBroker
+        phase: 0
+        direction: in
+        externalAddr: accountUpdates
+      }
+
+      autoLink {
+        addr: accounts/global
+        connection: LocalBroker
+        phase: 0
+        direction: in
+        externalAddr: accountUpdates::${REGIONAL_PREFIX}
+      }
+
+      autoLink {
+        addr: accounts/global
+        connection: R1_Router
+        phase: 0
+        direction: in
+        externalAddr: accountUpdates::${REGIONAL_PREFIX}
+      }
+
+      autoLink {
+        addr: accounts/global
+        connection: R2_Router
+        phase: 0
+        direction: in
+        externalAddr: accountUpdates::${REGIONAL_PREFIX}
+      }
+
+      linkRoute {
+          prefix: $coordinator
+          connection: LocalBroker
+          direction: in
+      }
+
+
+objects:
+  - kind: Service
+    apiVersion: v1
+    metadata:
+      name: ${APPLICATION_NAME}
+      labels:
+        application: ${APPLICATION_NAME}
+      annotations:
+        description: The router's AMQP port.
+        service.alpha.openshift.io/serving-cert-secret-name: ${APPLICATION_NAME}-cert
+    spec:
+      ports:
+        - port: 5672
+          name: amqp
+          targetPort: 5672
+        - port: 5671
+          name: amqps
+          targetPort: 5671
+        - port: 8672
+          name: http
+          targetPort: 8672
+        - port: 55672
+          name: inter-router
+          targetPort: 55672
+      selector:
+        deploymentConfig: ${APPLICATION_NAME}
+  - kind: DeploymentConfig
+    apiVersion: v1
+    metadata:
+      name: "${APPLICATION_NAME}"
+      labels:
+        application: "${APPLICATION_NAME}"
+    spec:
+      strategy:
+        type: Rolling
+        rollingParams:
+          maxSurge: 0
+      triggers:
+        - type: ImageChange
+          imageChangeParams:
+            automatic: true
+            containerNames:
+              - "${APPLICATION_NAME}"
+            from:
+              kind: ImageStreamTag
+              namespace: "${IMAGE_STREAM_NAMESPACE}"
+              name: ${IMAGE_NAME}
+        - type: ConfigChange
+      replicas: 1
+      selector:
+        deploymentConfig: "${APPLICATION_NAME}"
+      template:
+        metadata:
+          name: "${APPLICATION_NAME}"
+          labels:
+            deploymentConfig: "${APPLICATION_NAME}"
+            application: "${APPLICATION_NAME}"
+        spec:
+          serviceAccountName: ${APPLICATION_NAME}
+          terminationGracePeriodSeconds: 60
+          containers:
+            - name: "${APPLICATION_NAME}"
+              ports:
+                - name: amqp
+                  containerPort: 5672
+                  protocol: TCP
+                - name: amqps
+                  containerPort: 5671
+                  protocol: TCP
+                - name: http
+                  containerPort: 8672
+                  protocol: TCP
+                - name: inter
+                  containerPort: 55672
+                  protocol: TCP
+              env:
+                - name: APPLICATION_NAME
+                  value: "${APPLICATION_NAME}"
+                - name: QDROUTERD_CONF
+                  value: "/etc/qpid-dispatch/qdrouterd.conf"
+                - name: QDROUTERD_AUTO_MESH_DISCOVERY
+                  value: "QUERY"
+                - name: QDROUTERD_AUTO_CREATE_SASLDB_SOURCE
+                  value: "/etc/qpid-dispatch-users"
+                - name: QDROUTERD_AUTO_CREATE_SASLDB_PATH
+                  value: "/opt/interconnect/etc/qdrouterd.sasldb"
+                - name: REGIONAL_PREFIX
+                  value: "${REGIONAL_PREFIX}"
+                - name: LOCAL_BROKER_URL
+                  value: "${LOCAL_BROKER_URL}"
+                - name: POD_NAMESPACE
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.namespace
+                - name: POD_IP
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: status.podIP
+                  image: ${IMAGE_NAME}
+              volumeMounts:
+                - name: certs
+                  readOnly: true
+                  mountPath: /etc/qpid-dispatch-certs/normal/
+                - name: inter-router-certs
+                  readOnly: true
+                  mountPath: /etc/qpid-dispatch-certs/inter-router/
+                - name: client-ca
+                  readOnly: true
+                  mountPath: /etc/qpid-dispatch-certs/client-ca/
+                - name: config-volume
+                  mountPath: /etc/qpid-dispatch/
+                - name: sasl-config
+                  mountPath: /etc/sasl2/
+                - name: users
+                  mountPath: /etc/qpid-dispatch-users
+              terminationGracePeriodSeconds: 60
+              readinessProbe:
+                httpGet:
+                  path: /
+                  port: 8672
+              livenessProbe:
+                httpGet:
+                  path: /
+                  port: 8672
+          volumes:
+            - name: certs
+              secret:
+                secretName: ${APPLICATION_NAME}-cert
+            - name: inter-router-certs
+              secret:
+                secretName: ${INTER_ROUTER_CERTS_SECRET}
+            - name: client-ca
+              secret:
+                secretName: ${CLIENT_CA_SECRET}
+            - name: sasl-config
+              configMap:
+                name: ${APPLICATION_NAME}-sasl-config
+            - name: config-volume
+              configMap:
+                name: ${APPLICATION_NAME}
+            - name: users
+              secret:
+                secretName: ${APPLICATION_NAME}-users
+          imagePullPolicy: Always
+  - kind: ServiceAccount
+    apiVersion: v1
+    metadata:
+      name: ${APPLICATION_NAME}
+      labels:
+        application: "${APPLICATION_NAME}"
+  - kind: RoleBinding
+    apiVersion: v1
+    metadata:
+      name: ${APPLICATION_NAME}-view
+      labels:
+        application: "${APPLICATION_NAME}"
+    subjects:
+      - kind: ServiceAccount
+        name: ${APPLICATION_NAME}
+    roleRef:
+      name: "view"
+  - kind: ConfigMap
+    apiVersion: v1
+    metadata:
+      name: ${APPLICATION_NAME}
+      labels:
+        application: ${APPLICATION_NAME}
+    data:
+      qdrouterd.conf: ${QDROUTERD_CONF}
+  - kind: Secret
+    apiVersion: v1
+    metadata:
+      name: ${APPLICATION_NAME}-users
+      labels:
+        application: ${APPLICATION_NAME}
+    stringData:
+      ${USERNAME}: ${PASSWORD}
+  - kind: Route
+    apiVersion: v1
+    metadata:
+      name: ${APPLICATION_NAME}
+      labels:
+        application: ${APPLICATION_NAME}
+    spec:
+      port:
+        targetPort: amqps
+      tls:
+        termination: passthrough
+      to:
+        kind: Service
+        name: ${APPLICATION_NAME}
+  - kind: ConfigMap
+    apiVersion: v1
+    metadata:
+      name: ${APPLICATION_NAME}-sasl-config
+      labels:
+        application: ${APPLICATION_NAME}
+    data:
+      qdrouterd.conf: |-
+        pwcheck_method: auxprop
+        auxprop_plugin: sasldb
+        sasldb_path: /opt/interconnect/etc/qdrouterd.sasldb
+        mech_list: SCRAM-SHA-1 DIGEST-MD5 PLAIN EXTERNAL ANONYMOUS

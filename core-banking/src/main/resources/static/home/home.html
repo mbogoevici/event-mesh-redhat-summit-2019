@@ -1,0 +1,140 @@
+<div style="margin: 10px;">
+    <div class="navbar">
+        <a href="#!/home"><img src="imgs/header_logo_500.png" style="height:100px"/></a>
+        <!-- <div style="margin:5px;float: right !important"><img ng-class="selectedCard.cardType"/></div> -->
+    </div>
+
+
+    <!-- THIS IS THE PRIMARY CONTENT FOR THE HOME PAGE-->
+
+
+    <div>
+        <div class="panel panel-primary">
+            <div class="col-md-4">
+                <!-- SETTINGS FORM -->
+                <div class="panel-heading"><h4 class="panel-title">{{coreMetadata.localRegion}} Core</h4></div>
+                <div class="panel-body">
+                    <dl class="dl-horizontal">
+                        <dt>Account Updates Send</dt>
+                        <dd>&nbsp;{{coreMetadata.connection}}/{{coreMetadata.accountUpdatesSendAddress}}</dd>
+                    </dl>
+                    <form class="form-inline" role="form">
+                        <div class="form-group">
+                            <label for="accountId" class="control-label">AccountId</label>
+                            <div>
+                                <input type="text" id="accountId" class="form-control" ng-model="account.accountId"/>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="payload" class="control-label">Payload</label>
+                            <div>
+                                <input type="text" id="payload" class="form-control" ng-model="account.payload"/>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <input type="button" value="Send Account Update" ng-click="sendAccountUpdate()"
+                                   class="btn btn-primary"/>
+                        </div>
+                    </form>
+                </div>
+                <!-- END SETTINGS FORM -->
+            </div>
+            <div class="col-md-4">
+                <!-- SETTINGS FORM -->
+                <div class="panel-heading"><h4 class="panel-title">{{coreMetadata.localRegion}} Core</h4></div>
+                <div class="panel-body">
+                    <dl class="dl-horizontal">
+                        <dt>Account Updates Send</dt>
+                        <dd>&nbsp;{{coreMetadata.connection}}/{{coreMetadata.accountUpdatesSendAddress}}</dd>
+                    </dl>
+                    <form class="form-inline" role="form">
+                        <div class="form-group">
+                            <label for="accountId" class="control-label">From Account</label>
+                            <div>
+                                <input type="text" id="fromAccount" class="form-control" ng-model="liquidityBalanceTransfer.fromAccount"/>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="payload" class="control-label">Amount</label>
+                            <div>
+                                <input type="text" id="payload" class="form-control" ng-model="liquidityBalanceTransfer.amount"/>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="accountId" class="control-label">To Account</label>
+                            <div>
+                                <input type="text" id="toAccount" class="form-control" ng-model="liquidityBalanceTransfer.toAccount"/>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="payload" class="control-label">Target Region</label>
+                            <div>
+                                <select id="toRegion" class="form-control" ng-model="liquidityBalanceTransfer.toRegion">
+                                    <option value="local">Local</option>
+                                    <option value="apac">APAC</option>
+                                    <option value="emea">EMEA</option>
+                                    <option value="nam">NAM</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <input type="button" value="Send Account Update" ng-click="sendLiquidityBalanceTransfer()"
+                                   class="btn btn-primary"/>
+                        </div>
+                    </form>
+                </div>
+                <!-- END SETTINGS FORM -->
+            </div>
+        </div>
+    </div>
+
+    <div class="panel panel-primary">
+        <div class="panel-heading"><h4 class="panel-title">Received Account Updates</h4></div>
+        <div class="panel-body">
+            <div class="col-md-4">
+                <div class="panel panel-primary">
+                    <div class="panel-heading"><h4 class="panel-title">{{coreMetadata.localRegion}} Account Updates&nbsp;</h4>
+                        <small>{{coreMetadata.connection}}/{{coreMetadata.accountUpdatesReceiveAddress}}</small>
+                    </div>
+                    <table class="table table-responsive">
+                        <tr>
+                            <!-- <th>Id</th> -->
+                            <th>Id</th>
+                            <th>Payload</th>
+                            <th>Region</th>
+                        </tr>
+                        <tr ng-repeat="item in accountUpdates" ng-click="clearSelection($event)">
+                            <td>{{item.accountId}}</td>
+                            <td>{{item.payload}}</td>
+                            <td>{{item.region}}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <!-- BEGIN TABLE -->
+                <div class="panel panel-primary">
+                    <div class="panel-heading"><h4 class="panel-title">{{coreMetadata.localRegion}} Liquidity Balance Transfers&nbsp;</h4>
+                        <small>{{coreMetadata.connection}}/<b>{{coreMetadata.liquidityBalanceTransfersReceiveAddress}}</b></small>
+                    </div>
+                    <table class="table">
+                        <tr>
+                            <!-- <th>Id</th> -->
+                            <th>From Account</th>
+                            <th>From Region</th>
+                            <th>Amount</th>
+                            <th>To Account</th>
+                        </tr>
+                        <tr ng-repeat="item in liquidityBalanceTransfers" ng-click="clearSelection($event)">
+                            <td>{{item.fromAccount}}</td>
+                            <td>{{item.fromRegion}}</td>
+                            <td>{{item.amount}}</td>
+                            <td>{{item.toAccount}}</td>
+                        </tr>
+                    </table>
+                    <!-- END TABLE -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

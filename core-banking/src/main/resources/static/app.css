@@ -1,0 +1,133 @@
+/* app css stylesheet */
+/* THIS IS NOT A RESPONSIVE APPLICATION */
+table {
+  border: 0px solid gray;
+  border-collapse: collapse;
+}
+
+th {
+  border-bottom: 1px solid #000;
+  border-right: 0px solid;
+  background-color: #f5f5f5;
+  padding: 10px;
+}
+
+td {
+  border-color: #f5f5f5;  
+  border-bottom: 1px solid;
+  border-right: 0px solid;
+  padding: 10px;
+}
+
+a:link {
+  text-decoration: none;
+  color: #000000;
+}
+
+a:hover {
+  color: #306096;
+}
+
+.navbar {
+  /* border: 1px solid #000; */
+  background-color: #306096;
+}
+.menu {
+  list-style: none;
+  border-bottom: 0.1em solid black;
+  margin-bottom: 2em;
+  padding: 0 0 0.5em;
+}
+
+.menu > li {
+  display: inline;
+  padding-left: 25px;
+  color: #306096;
+}
+
+.heroimage {
+  width: 100%;
+}
+
+.selected {
+  background-color: #306096;
+  color: #fff;
+}
+
+/* table header right justified */
+.thr {
+  text-align: right;
+}
+
+.goldCard {
+  content:url("imgs/goldcardblk.png");
+  width: 125px;
+}
+
+.silverCard {
+  content:url("imgs/silvercardblk.png");
+  width: 125px;
+}
+
+.standardCard {
+  content:url("imgs/darkgray.png");
+  width: 125px;
+}
+
+.vspace {
+  height: 35px;
+}
+
+#mainContent {
+ width:100%;
+ margin-top: 25px;
+ height: 500px;
+}
+
+#leftPanel {
+  float: left !important;
+  width:33%;
+  height: 300px;
+}
+#centerPanel {
+  float: left;
+  margin-left: 5px;
+  width:33%;
+  height: 300px;
+}
+#rightPanel {
+  float: right;
+  width:33%;
+  height: 300px;
+}
+
+#microChoices {
+  margin-top: 80px;
+  margin-left: 80px;
+  text-align: center;
+}
+
+#microChoicesActiviy {
+  margin-top: 10px;
+  margin-left: 80px;
+  text-align: center;
+}
+
+#PCT20 {
+  float: left !important;
+  width: 20%;
+  margin-top: 20px;
+  font-weight: bold;
+  color: #f38034;
+}
+
+.full button span {
+  background-color: limegreen;
+  border-radius: 32px;
+  color: black;
+}
+.partially button span {
+  background-color: orange;
+  border-radius: 32px;
+  color: black;
+}
