@@ -67,8 +67,82 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
+			<plugin>
+				<groupId>io.fabric8</groupId>
+				<artifactId>fabric8-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<goals>
+							<goal>resource</goal>
+							<goal>build</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
 
+	<profiles>
+		<profile>
+			<id>apac</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>io.fabric8</groupId>
+						<artifactId>fabric8-maven-plugin</artifactId>
+						<configuration>
+							<resources>
+								<env>
+									<CONNECT_URL>apac-router.apac.svc</CONNECT_URL>
+									<REGION_NAME>APAC</REGION_NAME>
+									<SERVER_PORT>8080</SERVER_PORT>
+								</env>
+							</resources>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
+			<id>emea</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>io.fabric8</groupId>
+						<artifactId>fabric8-maven-plugin</artifactId>
+						<configuration>
+							<resources>
+								<env>
+									<CONNECT_URL>emea-router.emea.svc</CONNECT_URL>
+									<REGION_NAME>EMEA</REGION_NAME>
+									<SERVER_PORT>8080</SERVER_PORT>
+								</env>
+							</resources>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
+			<id>nam</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>io.fabric8</groupId>
+						<artifactId>fabric8-maven-plugin</artifactId>
+						<configuration>
+							<resources>
+								<env>
+									<CONNECT_URL>nam-router.nam.svc</CONNECT_URL>
+									<REGION_NAME>NAM</REGION_NAME>
+									<SERVER_PORT>8080</SERVER_PORT>
+								</env>
+							</resources>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 
 </project>
