@@ -1,0 +1,27 @@
+What is this?
+=============
+
+This is the companion demo of the talk on "Building a Global Distributed Service Mesh" delivered at Red Hat Summit 2019.
+
+
+How to set up the demo?
+=======================
+
+1. Create an OpenShift cluster in RHPDS.
+
+2. Use the provisioning script to create projects and deploy AMQ Broker and AMQ interconnect for all three regions:
+
+    ./provision-rhpds-ocp3.11.sh <UUID> <admin_user> <admin_password>
+
+This will deploy the routers, the brokers and the applications.
+
+3. Go to https://master00-UUID.generic.opentlc.com and verify that:
+
+* all three of the following projects exist: `apac`, `emea`, `nam`
+* each project has a broker, router and core-banking application
+
+4. Open terminals for each of the end-user apps and start sending messages
+
+* http://core-banking-apac.apps-<UUID>.generic.opentlc.com
+* http://core-banking-emea.apps-<UUID>.generic.opentlc.com
+* http://core-banking-nam.apps-<UUID>.generic.opentlc.com
