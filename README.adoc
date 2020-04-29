@@ -25,3 +25,28 @@ This will deploy the routers, the brokers and the applications.
 * http://core-banking-apac.apps-<UUID>.generic.opentlc.com
 * http://core-banking-emea.apps-<UUID>.generic.opentlc.com
 * http://core-banking-nam.apps-<UUID>.generic.opentlc.com
+
+
+How to set up the demo on OpenShift 4.3?
+========================================
+
+1. Create an OpenShift 4.3 cluster.
+
+2. Use the provisioning script to create projects and deploy AMQ Broker and AMQ interconnect for all three regions:
+
+    ./provision-ocp4.3.sh <domain> <admin_user> <admin_password>
+
+domain = domain-name of the OpenShift cluster. Master_URL = https://api.<domain>:6443
+
+This will deploy the routers, the brokers and the applications.
+
+3. Go to OpenShift Console https://console-openshift-console.apps.<domain> and verify that:
+
+* all three of the following projects exist: `apac`, `emea`, `nam`
+* each project has a broker, router and core-banking application
+
+4. Open terminals for each of the end-user apps and start sending messages
+
+* http://core-banking-apac.apps.<domain>
+* http://core-banking-emea.apps.<domain>
+* http://core-banking-nam.apps.<domain>
